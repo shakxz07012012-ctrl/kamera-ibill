@@ -1,1 +1,441 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>IBIL Camera Classic - Sentuh Bersuara</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
 
+        body {
+            background: #7ec8e0;
+            background: linear-gradient(145deg, #9ad4e6 0%, #6bb5d0 100%);
+            font-family: 'Segoe UI', 'Courier New', 'Times New Roman', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: #fef7e0;
+            background: linear-gradient(135deg, #fff9e8, #fff0d4);
+            border-radius: 48px 48px 56px 56px;
+            padding: 22px 24px 32px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2), inset 0 1px 4px rgba(255, 255, 255, 0.8);
+            max-width: 860px;
+            width: 100%;
+            border: 1px solid #c0dbe8;
+        }
+
+        h1 {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 32px;
+            letter-spacing: 2px;
+            color: #2c5a7a;
+            text-align: center;
+            margin-bottom: 6px;
+            text-shadow: 3px 3px 0 #d4eefc;
+            font-weight: normal;
+        }
+
+        .sub {
+            text-align: center;
+            color: #4e7e9e;
+            font-size: 14px;
+            font-style: italic;
+            margin-bottom: 20px;
+            border-top: 1px solid #caddf0;
+            display: inline-block;
+            width: auto;
+            padding-top: 6px;
+        }
+
+        .camera-box {
+            position: relative;
+            background: #cbdde9;
+            border-radius: 28px;
+            padding: 10px;
+            box-shadow: inset 0 0 0 2px #eef5fc, 0 12px 24px rgba(0, 0, 0, 0.2);
+            margin-bottom: 28px;
+        }
+
+        video, canvas {
+            width: 100%;
+            display: block;
+            border-radius: 20px;
+            background: #2c3e2f;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        button {
+            background: #f5f9ff;
+            border: 2px solid #3d7ca3;
+            color: #1f5170;
+            font-size: 18px;
+            font-family: 'Segoe UI', monospace;
+            font-weight: bold;
+            padding: 10px 28px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.08s linear;
+            box-shadow: 0 4px 0 #789bb3;
+            letter-spacing: 1px;
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #3d7ca3;
+            background: #e2f0ff;
+        }
+
+        .status {
+            background: #eef3fa;
+            border-radius: 100px;
+            padding: 12px 18px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 15px;
+            font-weight: bold;
+            color: #135b83;
+            margin: 18px 0;
+            border: 1px solid #bcd6e8;
+            box-shadow: inset 0 1px 2px #ffffff, 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .gallery {
+            background: #e5f0f5;
+            border-radius: 28px;
+            padding: 16px;
+            margin-top: 18px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            border: 1px solid #b8d0df;
+        }
+
+        .gallery img, .gallery video {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 18px;
+            border: 3px solid white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: 0.08s linear;
+        }
+
+        .gallery img:active, .gallery video:active {
+            transform: scale(0.94);
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 11px;
+            color: #6f9cbb;
+            margin-top: 24px;
+            font-family: monospace;
+        }
+
+        .touch-note {
+            text-align: center;
+            font-size: 13px;
+            background: #ffe5b4;
+            display: inline-block;
+            width: auto;
+            margin: 0 auto 12px;
+            padding: 6px 16px;
+            border-radius: 50px;
+            color: #8b5e2c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📷 IBIL CLASSIC CAMERA 📷</h1>
+    <div style="text-align: center;">
+        <div class="touch-note">hasil langsung ke galeri tidak dikirim ke server mana pun</div>
+    </div>
+
+    <div class="camera-box">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="controls">
+        <button id="captureBtn">️ FOTO</button>
+        <button id="recordBtn"> REKAM</button>
+        <button id="stopRecordBtn" disabled>BERHENTI</button>
+    </div>
+
+    <div class="status" id="status">
+        ☁️ IBIL siap → izinkan kamera 
+    </div>
+
+    <div class="gallery" id="gallery">
+        <div style="color:#88aac5; width:100%; text-align:center;">📸 hasil jepretan / video akan muncul di sini</div>
+    </div>
+
+    <div class="footer">
+        IBIL — kamera klasik biru langit | sentuh bersuara
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ========== 🎵 SOUND KLASIK (nada lembut & jadul) 🎵 ==========
+        let audioCtx = null;
+        
+        function initAudio() {
+            if (audioCtx) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            } catch(e) { console.log("no web audio"); }
+        }
+        
+        // suara klik "kamera klasik" (nada pendek, seperti jepret)
+        function playShutterSound() {
+            if (!audioCtx || audioCtx.state !== 'running') return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 680;
+            gain.gain.value = 0.22;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+            osc.stop(now + 0.1);
+            
+            // echo kecil biar klasik
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.value = 540;
+            gain2.gain.value = 0.1;
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.start(now + 0.05);
+            gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+            osc2.stop(now + 0.16);
+        }
+        
+        // suara "berhasil" klasik (nada panjang nostalgia)
+        function playClassicSuccess() {
+            if (!audioCtx || audioCtx.state !== 'running') return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = 880;
+            gain.gain.value = 0.2;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+            osc.stop(now + 0.28);
+        }
+        
+        function playRecordStartSound() {
+            if (!audioCtx || audioCtx.state !== 'running') return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 660;
+            gain.gain.value = 0.18;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+            osc.stop(now + 0.24);
+        }
+        
+        function playRecordStopSound() {
+            if (!audioCtx || audioCtx.state !== 'running') return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 520;
+            gain.gain.value = 0.2;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+            osc.stop(now + 0.2);
+        }
+        
+        function playHoverGentle() {
+            if (!audioCtx || audioCtx.state !== 'running') return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 1200;
+            gain.gain.value = 0.05;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
+            osc.stop(now + 0.06);
+        }
+        
+        // === CAMERA + GALLERY ===
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const recordBtn = document.getElementById('recordBtn');
+        const stopRecordBtn = document.getElementById('stopRecordBtn');
+        const statusDiv = document.getElementById('status');
+        const galleryDiv = document.getElementById('gallery');
+        
+        let stream = null;
+        let mediaRecorder = null;
+        let chunks = [];
+        
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                video.srcObject = stream;
+                statusDiv.innerHTML = "☁️ IBIL aktif · kamera biru langit siap 
+                statusDiv.style.background = "#e0f0fa";
+                return true;
+            } catch(err) {
+                statusDiv.innerHTML = "❌ izinkan kamera untuk memotret / rekam";
+                return false;
+            }
+        }
+        
+        function addMediaToGallery(src, type) {
+            if (galleryDiv.children.length === 1 && galleryDiv.children[0].innerText.includes("hasil")) {
+                galleryDiv.innerHTML = '';
+            }
+            const el = type === 'image' ? document.createElement('img') : document.createElement('video');
+            el.src = src;
+            if (type === 'video') {
+                el.controls = true;
+                el.style.width = '80px';
+                el.style.height = '80px';
+                el.style.objectFit = 'cover';
+            }
+            el.style.cursor = 'pointer';
+            el.onclick = () => window.open(src, '_blank');
+            galleryDiv.appendChild(el);
+            while (galleryDiv.children.length > 20) galleryDiv.removeChild(galleryDiv.children[0]);
+        }
+        
+        function takePhoto() {
+            if (!video.videoWidth) {
+                statusDiv.innerHTML = "⏳ tunggu sebentar, kamera belum stabil";
+                return;
+            }
+            playShutterSound();
+            playClassicSuccess();
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imgData = canvas.toDataURL('image/jpeg', 0.92);
+            addMediaToGallery(imgData, 'image');
+            
+            const link = document.createElement('a');
+            link.download = `ibil_${Date.now()}.jpg`;
+            link.href = imgData;
+            link.click();
+            statusDiv.innerHTML = `📸 foto klasik berhasil + suara jepret! (${new Date().toLocaleTimeString()})`;
+            setTimeout(() => {
+                statusDiv.innerHTML = "☁️ IBIL aktif · kamera biru langit siap";
+            }, 1800);
+        }
+        
+        function startRecording() {
+            if (!stream) return;
+            chunks = [];
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                addMediaToGallery(url, 'video');
+                const a = document.createElement('a');
+                a.download = `ibil_video_${Date.now()}.webm`;
+                a.href = url;
+                a.click();
+                playRecordStopSound();
+                statusDiv.innerHTML = "✅ rekaman klasik selesai + suara";
+            };
+            mediaRecorder.start(1000);
+            recordBtn.disabled = true;
+            stopRecordBtn.disabled = false;
+            playRecordStartSound();
+            statusDiv.innerHTML = "🔴 REKAMAN BERJALAN (suara mulai)";
+        }
+        
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                recordBtn.disabled = false;
+                stopRecordBtn.disabled = true;
+            }
+        }
+        
+        // === TOUCH + SOUND GLOBAL ===
+        function firstUserTap() {
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            playShutterSound();
+            document.removeEventListener('click', firstUserTap);
+            document.removeEventListener('touchstart', firstUserTap);
+        }
+        document.addEventListener('click', firstUserTap);
+        document.addEventListener('touchstart', firstUserTap);
+        
+        function attachSound(btn, type = 'click') {
+            if (!btn) return;
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (type === 'click') playShutterSound();
+                if (type === 'record') playRecordStartSound();
+                if (type === 'stop') playRecordStopSound();
+            });
+            btn.addEventListener('mouseenter', playHoverGentle);
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); playShutterSound(); btn.click(); });
+        }
+        
+        attachSound(captureBtn, 'click');
+        attachSound(recordBtn, 'record');
+        attachSound(stopRecordBtn, 'stop');
+        
+        captureBtn.onclick = (e) => { e.preventDefault(); takePhoto(); };
+        recordBtn.onclick = (e) => { e.preventDefault(); if (!recordBtn.disabled) startRecording(); };
+        stopRecordBtn.onclick = (e) => { e.preventDefault(); if (!stopRecordBtn.disabled) stopRecording(); };
+        
+        startCamera();
+    })();
+</script>
+</body>
+</html>
